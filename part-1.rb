@@ -175,8 +175,8 @@ module Types
     self
   end
 
-  def returns(res_type)
-    @res_type = res_type
+  def returns(ret_type)
+    @ret_type = ret_type
     self
   end
 
@@ -185,22 +185,36 @@ module Types
   end
 
   def method_added(name)
-    return unless @arg_types || @kwarg_types || @res_type
+    # short-circuit, to avoid infinite loop
+    return unless @arg_types || @kwarg_types || @ret_type
 
-    arg_types, kwarg_types, res_type = @arg_types, @kwarg_types, @res_type
-    @arg_types, @kwarg_types, @res_type = nil, nil, nil
+    # reset hook context, but store current values
+    arg_types, kwarg_types, ret_type = @arg_types, @kwarg_types, @ret_type
+    @arg_types, @kwarg_types, @ret_type = nil, nil, nil
 
+    # capture the original method
     meth = instance_method(name)
 
+    # wrap the original method with type checks
     define_method(name) do |*args, **kwargs, &block|
+      # check positional arguments
       arg_types.each_with_index do |type, idx|
-        raise "Invalid type for arg in pos #{idx}; expected: #{arg_types[idx]}" unless args[idx].is_a? type
+        raise "Invalid type for arg in pos #{idx}; expected: #{arg_types[idx]}" \
+          unless args[idx].is_a? type
       end
+
+      # check keyword arguments
       kwarg_types.each do |key, type|
-        raise "Invalid type for kwarg '#{key}`; expected #{kwarg_types[key]}" unless kwargs[key].is_a? type
+        raise "Invalid type for kwarg '#{key}`; expected #{kwarg_types[key]}" \
+          unless kwargs[key].is_a? type
       end
+
       ret = meth.bind(self).call(*args, &block)
-      raise "Invalid return type, expected #{ret.name}" unless ret.is_a? res_type
+
+      # check return type
+      raise "Invalid return type, expected #{ret.name}" \
+        unless ret.is_a? ret_type
+
       ret
     end
   end
