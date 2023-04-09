@@ -191,8 +191,8 @@ end
 # Test it out by intentionally passing an incorrect value for `a`:
 #
 
+puts "\nExample 3a:"
 begin
-  puts "\nExample 3a:"
   test3("A", 2, 3, 4, d: 5, e: 6, f: 7, g: 8)
 rescue StandardError => e
   # Expected to fail with: Invalid arg at position 0, expected Numeric
@@ -208,8 +208,8 @@ end
 # We can try again with an invalid argument for one of the 'rest' parameters:
 #
 
+puts "\nExample 3b:"
 begin
-  puts "\nExample 3b:"
   test3(1, 2, 3, "C", d: 5, e: 6, f: 7, g: 8)
 rescue StandardError => e
   # Expected to fail with: Invalid arg at position 3, expected Numeric
@@ -225,8 +225,8 @@ end
 # Finally we can it with valid arguments:
 #
 
+puts "\nExample 3c:"
 begin
-  puts "\nExample 3c:"
   test3(1, 2, 3, 4, d: 5, e: 6, f: 7, g: 8)
 rescue StandardError => e
   puts "Error: #{e}"
@@ -255,6 +255,7 @@ end
 #       Array.new(str, count).join(separator)
 #     end
 #   end
+#
 
 module Types
   module Helpers
@@ -466,9 +467,9 @@ module Types
   module Helpers
     class << self
       def check_keyword_args(kwargs, arg_types, params)
-        puts kwargs.to_s
-        puts arg_types.to_s
-        puts params.to_s
+        # puts kwargs.to_s
+        # puts arg_types.to_s
+        # puts params.to_s
       end
     end
   end

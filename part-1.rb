@@ -1,12 +1,15 @@
 #!/usr/bin/env ruby
 
-puts "Example 1:"
-
+#
+# Ruby Type Checking - Part 1
+# ---------------------------
+#
 # Lets begin with a simple example, that illustrates the shape of the output
 # that we would like to achieve. We will define a class called `Repeater1`
 # which knows how to repeat a string `str` a given number times `count`,
 # with each copy of the string separated by `separator`. This final argument
 # is a keyword argument, that has a default value of ''.
+#
 
 class Repeater1
   def repeat(str, count, separator: '')
@@ -14,20 +17,23 @@ class Repeater1
   end
 end
 
+#
 # We can test the Repeater1 class as follows:
+#
 
+puts "Example 1:"
 puts Repeater1.new.repeat("test", 3, separator: ", ")
-puts
 
+#
 # As you might have guessed, the output should look something like this:
 #
 #   test, test, test
-
-puts "Example 2:"
-
+#
+#
 # Now let's say we want to add some functionality to this class, so that we
 # print its arguments before the body is executed, and print out the return
 # value before it is returned to the caller. We could write this as:
+#
 
 class Repeater2
   def repeat(*args, **kwargs, &block)
@@ -41,6 +47,7 @@ class Repeater2
   end
 end
 
+#
 # There's something unusual about this code, which is the lambda literal in
 # the middle of the code block, that we call using `.call()`. This is used
 # to illustrate that we'll be wrapping our original method in a block that
@@ -52,19 +59,19 @@ end
 # print out the actual arguments supplied.
 #
 # We can test the Repeater2 class as follows:
+#
 
+puts "\nExample 2:"
 puts Repeater2.new.repeat("test", 3, separator: ", ")
-puts
 
+#
 # The output should be the similar to example 1, but now it will include the
 # arguments and return value:
 #
 #   before: ["test", 3], {:separator=>", "}
 #   after: test, test, test
 #   test, test, test
-
-puts "Example 3:"
-
+#
 # What if we would like to simplify `Repeater2` so that the code to run 
 # before and after the method body is more clearly separated, using an 
 # annotative style.
@@ -82,7 +89,8 @@ puts "Example 3:"
 # with the arguments specified to the method. And the `after` lambda is
 # called with the return value.
 #
-# We can achieve this using the following module:
+# We can achieve this using the following `Hooks` module:
+#
 
 module Hooks
   def before(tag)
@@ -112,6 +120,7 @@ module Hooks
   end
 end
 
+#
 # This module uses Ruby’s powerful meta-programming functionality to override
 # method declaration. In this case, we're making use of `method_added`, which
 # is called whenever a method is added to a class.
@@ -119,7 +128,8 @@ end
 # Inside the block passed to `method_added`, we first call the `before` hook,
 # then the original method, before finally calling the `after` hook.
 #
-# Here is the Repeater class implemented using the Hooks module:
+# Here is the Repeater class re-written to use the Hooks module:
+#
 
 class Repeater3
   extend Hooks
@@ -131,15 +141,17 @@ class Repeater3
   end
 end
 
-# Test it using the same snippet as earlier:
+#
+# We can test this out using the same snippet as earlier, modified to refer to
+# the new `Repeater3` class:
+#
 
+puts "\nExample 3:"
 puts Repeater3.new.repeat("test", 3, separator: ", ")
-puts
 
+#
 # Once again, this should produce the same output.
-
-puts "Example 4:"
-
+#
 # Now we're ready to build on this, and implement primitive type-checking,
 # loosely inspired by Sorbet.
 #
@@ -167,7 +179,8 @@ puts "Example 4:"
 #     Array.new(count, str).join(separator)
 #   end
 #
-# It turns out we can, by defining a new module called Types:
+# It turns out we can, by defining a new module called `Types`:
+#
 
 module Types
   def params(*arg_types, **kwarg_types)
@@ -220,7 +233,9 @@ module Types
   end
 end
 
+#
 # Now we can re-implement the Repeater class by extending the Types module:
+#
 
 class Repeater4
   extend Types
@@ -231,20 +246,29 @@ class Repeater4
   end
 end
 
+#
 # If we run the same snippet as above:
+#
 
+puts "\nExample 4a:"
 puts Repeater4.new.repeat("test", 3, separator: ", ")
 
+#
 # We should simply see the output of the `repeat` method.
 #
 # However, if we supply the wrong types...
+#
 
+puts "\nExample 4b:"
 begin
   puts Repeater4.new.repeat("test", "3", separator: ", ")
 rescue StandardError => e
+  # Expected to fail with: Invalid type for arg in pos 1; expected: Numeric
   puts "Error: #{e}"
 end
 
+#
 # We will get an appropriate type error:
 #
 #   Error: Invalid type for arg in pos 1; expected: Numeric
+#
