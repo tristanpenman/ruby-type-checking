@@ -12,6 +12,12 @@ class Main
   end
 end
 
+begin
+  Main.main(123)
+rescue StandardError => e
+  puts "Error: #{e}"
+end
+
 loop do
   Main.main
   sleep 1
