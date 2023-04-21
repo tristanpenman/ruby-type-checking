@@ -193,6 +193,7 @@ module Types
     self
   end
 
+  # syntactic sugar, so that everything is wrapped up nicely
   def typedef
     yield
   end
@@ -210,26 +211,35 @@ module Types
 
     # wrap the original method with type checks
     define_method(name) do |*args, **kwargs, &block|
-      # check positional arguments
-      arg_types.each_with_index do |type, idx|
-        raise "Invalid type for arg in pos #{idx}; expected: #{arg_types[idx]}" \
-          unless args[idx].is_a? type
-      end
-
-      # check keyword arguments
-      kwarg_types.each do |key, type|
-        raise "Invalid type for kwarg '#{key}`; expected #{kwarg_types[key]}" \
-          unless kwargs[key].is_a? type
-      end
-
-      ret = meth.bind(self).call(*args, &block)
-
-      # check return type
-      raise "Invalid return type, expected #{ret.name}" \
-        unless ret.is_a? ret_type
-
-      ret
+      Helpers::call_checked(
+        meth.bind(self), args, kwargs, arg_types, kwarg_types, ret_type, block)
     end
+  end
+end
+
+#
+# This is how check_types is implemented:
+#
+
+module Types::Helpers
+  def self.call_checked(meth, args, kwargs, arg_types, kwarg_types, ret_type, block)
+    # check positional arguments
+    arg_types.each_with_index do |type, idx|
+      raise "Invalid type for arg in pos #{idx}; expected: #{arg_types[idx]}" \
+        unless args[idx].is_a? type
+    end
+
+    # check keyword arguments
+    kwarg_types.each do |key, type|
+      raise "Invalid type for kwarg '#{key}`; expected #{kwarg_types[key]}" \
+        unless kwargs[key].is_a? type
+    end
+
+    # call method and check return type
+    ret = meth.call(*args, &block)
+    raise "Invalid return type, expected #{ret.name}" \
+      unless ret.is_a? ret_type
+    ret
   end
 end
 
