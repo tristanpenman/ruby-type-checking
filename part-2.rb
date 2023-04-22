@@ -261,12 +261,13 @@ module Types
   module Helpers
     class << self
       def check_positional_args(args, arg_types, params)
+        arg_type = nil
         args.each_with_index do |arg, idx|
           param = params[idx]
           if param && [:req, :opt, :rest].include?(param[0])
             param_type = param[0]
             param_name = param[1]
-            arg_type = arg_types[param_name]
+            arg_type = arg_types[param_name] unless arg_types[param_name].nil?
 
             # Happens if there are positional arguments without a corresponding
             # type for the rest parameter
@@ -358,6 +359,14 @@ puts Repeater5.new.repeat("test", 3, 2)
 
 puts "\nExample 4d:"
 puts Repeater5.new.repeat("test", 3)
+
+puts "\nExample 4e:"
+begin
+  puts Repeater5.new.repeat("test", 3, 2, "a")
+rescue StandardError => e
+  # Expected to fail with: Missing type for rest parameter `multiples`
+  puts "Error: #{e}"
+end
 
 #
 # It's also worth noting what happens when rest arguments are present, but
