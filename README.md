@@ -1,10 +1,12 @@
-# Ruby Type-Checking
+# Ruby Type Checking
 
-This repo contains some experimental code that I've written while learning about type-checking in Ruby. The aim of these experiments was to better understand how [Sorbet](https://sorbet.org) works under-the-hood.
+This repo contains some experimental code that I've written while learning about type checking in Ruby. The aim of these experiments is to better understand Ruby, and to look at how runtime type checking works in [Sorbet](https://sorbet.org).
 
 These have been written up as posts on my blog:
 * [Roll Your Own Ruby Type Checking: Part 1](https://tristanpenman.com/blog/posts/2022/12/26/roll-your-own-ruby-type-checking-part-1/)
-* [Roll Your Own Ruby Type Checking: Part 2](https://tristanpenman.com/blog/posts/2022/12/31/roll-your-own-ruby-type-checking-part-2/)
+
+Part two is expected to be published here:
+* [Roll Your Own Ruby Type Checking: Part 2](https://tristanpenman.com/blog/posts/2023/04/26/roll-your-own-ruby-type-checking-part-2/)
 
 The code examples here roughly follow the structure of the posts.
 
@@ -38,15 +40,45 @@ Current output is expected to look like this:
 
 ## Part 2
 
-The code for part 2 can be found in [part-2.rb](part-2.rb). This code addresses some of the limitations of the type-checking implementation in part 1, while also making it more robust.
+The code for part 2 can be found in [part-2.rb](part-2.rb). This code addresses some of the limitations of the type checker implemented in part 1, while also making it more robust.
 
 This code can be run from the command line with no arguments:
 
     ruby part-2.rb
 
+There are quite a few examples in part 2. The beginning of the output should look like this:
+
+    Example 1a:
+    [:req, :a]
+    [:opt, :b]
+    [:rest, :c]
+    [:keyreq, :d]
+    [:key, :e]
+    [:keyrest, :f]
+
+    Example 1b:
+    [:req, :a]
+    [:opt, :b]
+    [:rest, :c]
+    [:keyreq, :d]
+    [:key, :e]
+    [:keyrest, :f]
+
+    Example 2a:
+    ["a", 1]
+    ["b", 2]
+    ["c", [3, 4]]
+    ["d", 5]
+    ["e", 6]
+    ["f", {:f=>7, :g=>8}]
+
+    ... SNIP! ...
+
 ## Breaking Sorbet
 
-While experimenting with my own Ruby Type Checking implementation, I found that there were some fundamental limitations on how runtime type checking can be implemented in Ruby. These cases have been tested against Sorbet in [breaking-sorbet.rb](breaking-sorbet.rb).
+While experimenting with my own type checker, I found that there were some fundamental limitations on how runtime type checking can be performed in Ruby. Specifically, it's not possible to verify the types of default arguments, when those parameters are omitted.
+
+These cases have been tested against Sorbet in [breaking-sorbet.rb](breaking-sorbet.rb). You'll need to install the `sorbet-runtime` gem to run this code.
 
 ## License
 
