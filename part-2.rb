@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
+def wait_for_input
+  # STDIN.getc
+end
+
 #
 # Ruby Type Checking - Part 2
 # ---------------------------
@@ -96,6 +100,8 @@ def test2(a, b = 2, *c, d:, e: 6, **f)
   nil
 end
 
+wait_for_input
+
 #
 # We can start with the same arguments as our first call to test1:
 #
@@ -187,6 +193,8 @@ def test3(*args, **kwargs)
   meth.call(*args, **kwargs)
 end
 
+wait_for_input
+
 #
 # Test it out by intentionally passing an incorrect value for `a`:
 #
@@ -231,6 +239,8 @@ begin
 rescue StandardError => e
   puts "Error: #{e}"
 end
+
+wait_for_input
 
 #
 # We can now rewrite `Types` to take advantage of position argument validation.
@@ -368,6 +378,8 @@ rescue StandardError => e
   puts "Error: #{e}"
 end
 
+wait_for_input
+
 #
 # It's also worth noting what happens when rest arguments are present, but
 # the name of the parameter in the method signature does not match the type
@@ -393,13 +405,15 @@ class Repeater6
   end
 end
 
-puts "\nExample 6:"
+puts "\nExample 5:"
 begin
   puts Repeater6.new.repeat("test", 3, 2)
 rescue StandardError => e
   # Expected to fail with: Missing type for rest parameter `multiples`
   puts "Error: #{e}"
 end
+
+wait_for_input
 
 #
 # Something similar occurs if other positional arguments have missing or
@@ -425,7 +439,7 @@ class Repeater7
   end
 end
 
-puts "\nExample 7:"
+puts "\nExample 6:"
 begin
   puts Repeater7.new.repeat("test", 3, 2)
 rescue StandardError => e
@@ -476,9 +490,37 @@ module Types
   module Helpers
     class << self
       def check_keyword_args(kwargs, arg_types, params)
-        # puts kwargs.to_s
-        # puts arg_types.to_s
-        # puts params.to_s
+        # don't modify the original hash
+        kwargs = kwargs.clone
+
+        arg_type = nil
+        params.each do |param|
+          param_type = param[0]
+          param_name = param[1]
+          arg_type = arg_types[param_name] unless arg_types[param_name].nil?
+
+          # only have keyrest params left, so we can break out
+          break if param_type == :keyrest
+          
+          if param_type == :keyreq
+            raise "Invalid value for required kw param `#{param_name}`; expected #{arg_type}" unless kwargs[param_name].is_a?(arg_type)
+          elsif param_type == :key
+            raise "Invalid value for optional kw param `#{param_name}`; expected #{arg_type}" unless \
+              !kwargs.include?(param_name) || kwargs[param_name].is_a?(arg_type)
+          end
+
+          # make sure we can detect extra kw params when they're not expected
+          arg_type = nil
+          kwargs.delete(param_name)
+        end
+
+        raise 'Unexpected extra kw params' \
+          if kwargs.keys.length > 0 && arg_type.nil?
+
+        kwargs.keys.each do |kwarg|
+          raise "Invalid value for extra kw param `#{kwarg}`; expected #{arg_type}" unless \
+            kwargs[kwarg].is_a?(arg_type)
+        end
       end
     end
   end
@@ -499,5 +541,32 @@ class Logger
   end
 end
 
-puts "\nExample 9:"
-Logger.new.log(msg: 'Hello world', severity: 3, hello: "world")
+puts "\nExample 9a:"
+Logger.new.log(msg: 'Hello world', severity: 2, hello: "world")
+
+puts "\nExample 9b:"
+begin
+  Logger.new.log(msg: 123, severity: 2, hello: "world")
+rescue StandardError => e
+  # Expected to fail with: Invalid value for required kw param msg; expected String
+  puts "Error: #{e}"
+end
+
+puts "\nExample 9c:"
+begin
+  Logger.new.log(msg: 'Hello world', severity: 'Three', hello: "world")
+rescue StandardError => e
+  # Expected to fail with: Invalid value for optional kw param severity; expected Numeric
+  puts "Error: #{e}"
+end
+
+puts "\nExample 9d:"
+Logger.new.log(msg: 'Hello world', hello: "world")
+
+puts "\nExample 9e:"
+begin
+  Logger.new.log(msg: 'Hello world', severity: 3, hello: "world", foo: 2)
+rescue StandardError => e
+  # Expected to fail with: Invalid value for extra kw param foo; expected String
+  puts "Error: #{e}"
+end
