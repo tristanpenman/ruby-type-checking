@@ -2,7 +2,10 @@
 
 #
 # Ruby Type Checking - Part 1
-# ---------------------------
+# ===========================
+#
+# Annotations, Hooks and Type Checking
+# ------------------------------------
 #
 # Lets begin with a simple example, that illustrates the shape of the output
 # that we would like to achieve. We will define a class called `Repeater1`
@@ -72,8 +75,8 @@ puts Repeater2.new.repeat("test", 3, separator: ", ")
 #   after: test, test, test
 #   test, test, test
 #
-# What if we would like to simplify `Repeater2` so that the code to run 
-# before and after the method body is more clearly separated, using an 
+# What if we would like to simplify `Repeater2` so that the code to run
+# before and after the method body is more clearly separated, using an
 # annotative style.
 #
 # Ideally, it should look something like this:

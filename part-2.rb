@@ -1,20 +1,19 @@
 #!/usr/bin/env ruby
 
-def wait_for_input
-  # STDIN.getc
-end
-
 #
 # Ruby Type Checking - Part 2
-# ---------------------------
+# ===========================
+#
+# Optional and Additional Parameters
+# ----------------------------------
 #
 # In the first set of examples (part-1.rb) we finished with a simple type-
 # checking module called `Types`. Classes could extend from `Types`, to take
-# advantage of simple type-checking functionality:
+# advantage of simple Sorbet-inspired type checking:
 #
 #   class Repeater4
 #     extend Types
-# 
+#
 #     typedef { params(String, Numeric, separator: String).returns(String) }
 #     def repeat(str, count, separator: '')
 #       Array.new(str, count).join(separator)
@@ -30,7 +29,7 @@ end
 #
 # Specifically, we cannot directly assign a type to `*messages`, because it
 # may be representative of multiple positional arguments. We can only specify
-# types for a fixed number of arguments. 
+# types for a fixed number of arguments.
 #
 # Let's try a little metaprogramming experiment to better understand how we may
 # be able to support this. Our first example will use reflection to inspect the
@@ -99,8 +98,6 @@ def test2(a, b = 2, *c, d:, e: 6, **f)
   end
   nil
 end
-
-wait_for_input
 
 #
 # We can start with the same arguments as our first call to test1:
@@ -188,12 +185,10 @@ def test3(*args, **kwargs)
     raise "Invalid arg at position #{idx}, expected #{arg_type}" \
       unless arg.is_a?(arg_type)
   end
-  
+
   # Call the original method (without checking kwargs)
   meth.call(*args, **kwargs)
 end
-
-wait_for_input
 
 #
 # Test it out by intentionally passing an incorrect value for `a`:
@@ -208,7 +203,7 @@ rescue StandardError => e
 end
 
 #
-# This should fail with: 
+# This should fail with:
 #
 #   Error: Invalid arg at position 0, expected Numeric
 #    => nil
@@ -240,8 +235,6 @@ rescue StandardError => e
   puts "Error: #{e}"
 end
 
-wait_for_input
-
 #
 # We can now rewrite `Types` to take advantage of position argument validation.
 #
@@ -251,7 +244,7 @@ wait_for_input
 #
 #   class Repeater4
 #     extend Types
-# 
+#
 #     typedef do
 #       params(
 #         str: String,
@@ -268,39 +261,6 @@ wait_for_input
 #
 
 module Types
-  module Helpers
-    class << self
-      def check_positional_args(args, arg_types, params)
-        arg_type = nil
-        args.each_with_index do |arg, idx|
-          param = params[idx]
-          if param && [:req, :opt, :rest].include?(param[0])
-            param_type = param[0]
-            param_name = param[1]
-            arg_type = arg_types[param_name] unless arg_types[param_name].nil?
-
-            # Happens if there are positional arguments without a corresponding
-            # type for the rest parameter
-            raise "Missing type for #{param[0]} parameter `#{param_name}`" \
-              if arg_type.nil?
-          end
-      
-          raise "Invalid arg at position #{idx}, expected #{arg_type}" \
-            unless arg.is_a?(arg_type)
-        end
-      end
-  
-      def check_keyword_args(_kwargs, _arg_types, _params)
-        # TODO: not implemented
-      end
-  
-      def check_return_value(ret, ret_type)
-        raise "Invalid return type, expected #{ret_type.name}" \
-          unless ret.is_a? ret_type
-      end
-    end
-  end
-
   # we accept just a hash of key-values, mapping parameters to argument types
   def params(**arg_types)
     @arg_types = arg_types
@@ -335,6 +295,51 @@ module Types
       ret = meth.bind(self).call(*args, **kwargs, &block)
       Helpers::check_return_value(ret, ret_type) if ret_type
       ret
+    end
+  end
+end
+
+#
+# This has been written to use a Helpers module. This is intended to make it
+# more maintainable, and easier to test in isolation:
+#
+
+module Types
+  module Helpers
+    class << self
+      def check_positional_args(args, arg_types, params)
+        arg_type = nil
+        args.each_with_index do |arg, idx|
+          param = params[idx]
+          if param && [:req, :opt, :rest].include?(param[0])
+            param_type = param[0]
+            param_name = param[1]
+
+            # Updated as long as their are positional parameter names to
+            # consume. Once there aren't any more to consume, we must be
+            # checking additional arguments, and can keep using whatever
+            # the last type was for that.
+            arg_type = arg_types[param_name] unless arg_types[param_name].nil?
+
+            # Happens if there are positional arguments without a corresponding
+            # type for the rest parameter
+            raise "Missing type for #{param[0]} parameter `#{param_name}`" \
+              if arg_type.nil?
+          end
+
+          raise "Invalid arg at position #{idx}, expected #{arg_type}" \
+            unless arg.is_a?(arg_type)
+        end
+      end
+
+      def check_keyword_args(_kwargs, _arg_types, _params)
+        # TODO: not implemented
+      end
+
+      def check_return_value(ret, ret_type)
+        raise "Invalid return type, expected #{ret_type.name}" \
+          unless ret.is_a? ret_type
+      end
     end
   end
 end
@@ -378,8 +383,6 @@ rescue StandardError => e
   puts "Error: #{e}"
 end
 
-wait_for_input
-
 #
 # It's also worth noting what happens when rest arguments are present, but
 # the name of the parameter in the method signature does not match the type
@@ -412,8 +415,6 @@ rescue StandardError => e
   # Expected to fail with: Missing type for rest parameter `multiples`
   puts "Error: #{e}"
 end
-
-wait_for_input
 
 #
 # Something similar occurs if other positional arguments have missing or
@@ -501,7 +502,7 @@ module Types
 
           # only have keyrest params left, so we can break out
           break if param_type == :keyrest
-          
+
           if param_type == :keyreq
             raise "Invalid value for required kw param `#{param_name}`; expected #{arg_type}" unless kwargs[param_name].is_a?(arg_type)
           elsif param_type == :key

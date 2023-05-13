@@ -4,13 +4,11 @@ This repo contains some experimental code that I've written while learning about
 
 These have been written up as posts on my blog:
 * [Roll Your Own Ruby Type Checking: Part 1](https://tristanpenman.com/blog/posts/2022/12/26/roll-your-own-ruby-type-checking-part-1/)
+* [Roll Your Own Ruby Type Checking: Part 2](https://tristanpenman.com/blog/posts/2023/05/13/roll-your-own-ruby-type-checking-part-2/)
 
-Part two is expected to be published here:
-* [Roll Your Own Ruby Type Checking: Part 2](https://tristanpenman.com/blog/posts/2023/04/26/roll-your-own-ruby-type-checking-part-2/)
+The code examples here roughly follow the structure of these posts.
 
-The code examples here roughly follow the structure of the posts.
-
-## Part 1
+## Part 1 - Annotations, Hooks and Type Checking
 
 The code for part 1 can be found in [part-1.rb](part-1.rb). This code demonstrates a technique for implementing method annotations in Ruby, allowing a method to be annotated with hooks that are run before and after the method body. This is then adapted for type-checking.
 
@@ -38,7 +36,7 @@ Current output is expected to look like this:
 
     Error: Invalid type for arg 1; expected: Numeric
 
-## Part 2
+## Part 2 - Optional and Additional Parameters
 
 The code for part 2 can be found in [part-2.rb](part-2.rb). This code addresses some of the limitations of the type checker implemented in part 1, while also making it more robust.
 
@@ -74,11 +72,13 @@ There are quite a few examples in part 2. The beginning of the output should loo
 
     ... SNIP! ...
 
-## Breaking Sorbet
+## Part 3 - Breaking Sorbet
 
-While experimenting with my own type checker, I found that there were some fundamental limitations on how runtime type checking can be performed in Ruby. Specifically, it's not possible to verify the types of default arguments, when those parameters are omitted.
+While experimenting with my own type checker, I found that there were some fundamental limitations on how runtime type checking can be performed in Ruby. Specifically, it's not possible to verify the types for parameters with default arguments, when those arguments are omitted.
 
-These cases have been tested against Sorbet in [breaking-sorbet.rb](breaking-sorbet.rb). You'll need to install the `sorbet-runtime` gem to run this code.
+This has been demonstrated using Sorbet in [part-3.rb](part-3.rb). You'll need to install the `sorbet-runtime` gem to run this code.
+
+To illustrate how this differs from Python, [part-3.py](part-3.py) has also been included. This highlights the fact that, no matter which approach you choose, you end up with surprising behaviour.
 
 ## License
 
