@@ -1,8 +1,8 @@
 # Ruby Type Checking
 
-This repo contains some experimental code that I've written while learning about type checking in Ruby. The aim of these experiments is to better understand Ruby, and to look at how runtime type checking works in [Sorbet](https://sorbet.org).
+This repo contains some experimental code that I've written while learning about type checking in Ruby. The aim of these experiments has been to better understand Ruby, and to reason about how runtime type checking works in [Sorbet](https://sorbet.org).
 
-These have been written up as a series of posts, _Roll Your Own Ruby Type Checking_, on my blog:
+My findings have been written up as a series of posts, _Roll Your Own Ruby Type Checking_, on my blog:
 * [Part 1](https://tristanpenman.com/blog/posts/2022/12/26/roll-your-own-ruby-type-checking-part-1/)
 * [Part 2](https://tristanpenman.com/blog/posts/2023/05/13/roll-your-own-ruby-type-checking-part-2/)
 * [Part 3](https://tristanpenman.com/blog/posts/2023/05/20/roll-your-own-ruby-type-checking-part-3/)
